@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#171a2a" />
+  <title>이벤트 재화 계산기 | 에너지 · 파젬</title>
+  <style>
+    :root { font-family: Pretendard, 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#202438; background:#f6f7fb; font-synthesis:none; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; }
+    .top { background:linear-gradient(115deg,#171a2a 0%,#29244a 70%,#38305e 100%); color:white; padding:48px 20px 90px; }
+    .top-inner, main { max-width:1060px; margin:auto; }
+    .eyebrow { text-transform:uppercase; letter-spacing:2px; font-size:12px; font-weight:800; color:#c4b4ff; }
+    h1 { margin:12px 0; font-size:clamp(28px,5vw,42px); letter-spacing:-1.8px; line-height:1.22; }
+    .lead { color:#d0cde1; font-size:15px; line-height:1.8; margin:0; }
+    main { margin:-52px auto 50px; position:relative; padding:0 20px; }
+    .layout { display:grid; grid-template-columns:minmax(290px, .93fr) minmax(0,1.5fr); gap:20px; align-items:start; }
+    .panel { background:white; border:1px solid #e9e9f2; box-shadow:0 10px 30px rgba(31,30,61,.05); border-radius:20px; padding:26px; }
+    .panel h2 { margin:0 0 8px; font-size:20px; letter-spacing:-.6px; }
+    .subtle { margin:0 0 24px; font-size:13px; line-height:1.6; color:#74798d; }
+    .field { margin-bottom:18px; }
+    .field label { display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:13px; font-weight:750; margin-bottom:8px; }
+    .field label span { font-size:11px; font-weight:500; color:#9699aa; }
+    .input-wrap { display:flex; align-items:center; border:1px solid #e0e1ea; border-radius:12px; background:#fcfcff; overflow:hidden; transition:border-color .15s,box-shadow .15s; }
+    .input-wrap:focus-within { border-color:#7564d9; box-shadow:0 0 0 3px #7564d91a; }
+    input { width:100%; min-width:0; background:transparent; border:0; outline:0; padding:13px 14px; font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; color:#24243c; }
+    .unit { white-space:nowrap; font-size:13px; color:#777b91; padding-right:13px; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .divider { border:0; height:1px; background:#eeeeF5; margin:20px 0; }
+    .rule { border-radius:14px; padding:15px; background:#f7f6fd; color:#585372; font-size:12px; line-height:1.8; }
+    .rule strong { color:#433b76; }
+    .headrow { display:flex; align-items:start; justify-content:space-between; gap:10px; margin-bottom:18px; }
+    .headrow h2 { margin-bottom:3px; }
+    .status { padding:7px 10px; border-radius:100px; font-size:11px; font-weight:800; white-space:nowrap; background:#f4f0ff; color:#6751c2; }
+    .result-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .metric { min-height:112px; border-radius:15px; background:#f8f8fc; padding:17px; }
+    .metric .name { color:#6f7489; font-size:12px; font-weight:650; line-height:1.5; }
+    .metric .number { font-size:clamp(21px,2.5vw,28px); color:#25243d; font-weight:850; margin-top:8px; letter-spacing:-.8px; overflow-wrap:anywhere; }
+    .metric .number small { font-size:13px; font-weight:650; letter-spacing:0; }
+    .metric.accent { background:#eeeafb; }
+    .metric.accent .number { color:#5b48bd; }
+    .section-title { margin:26px 0 12px; font-size:15px; font-weight:800; }
+    .compare { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .option { border:1px solid #e6e5f0; border-radius:15px; padding:17px; }
+    .option.best { border-color:#b9aaf8; background:#faf8ff; }
+    .option-label { font-size:12px; color:#6c6982; font-weight:750; }
+    .option-value { font-size:24px; font-weight:850; letter-spacing:-1px; margin:8px 0 5px; }
+    .option-value small { font-size:12px; font-weight:600; }
+    .option-desc { color:#7d8091; font-size:12px; line-height:1.65; }
+    .bar-wrap { margin:19px 0 6px; }
+    .bar-meta { display:flex; justify-content:space-between; font-size:12px; color:#70758a; gap:10px; margin-bottom:8px; }
+    .bar { height:10px; background:#ebe9f4; border-radius:50px; overflow:hidden; }
+    .bar > div { height:100%; background:linear-gradient(90deg,#a494e9,#6950cd); width:0; border-radius:50px; transition:width .2s; }
+    .message { padding:14px 16px; border-radius:13px; background:#f2f6ff; color:#405477; line-height:1.75; font-size:13px; margin-top:16px; }
+    .message.warning { background:#fff5e9; color:#845a2c; }
+    .footnote { font-size:12px; line-height:1.85; color:#828699; margin-top:19px; }
+    button { background:#282343; color:#fff; border:0; border-radius:10px; font:inherit; font-size:13px; font-weight:750; padding:11px 16px; cursor:pointer; }
+    button:hover { background:#514480; }
+    .actions { display:flex; justify-content:flex-end; margin-top:18px; }
+    .error { display:none; margin:16px 0 0; color:#a53342; background:#fff0f2; padding:12px; border-radius:10px; font-size:13px; }
+    footer { text-align:center; padding:12px 20px 40px; color:#9a9caf; font-size:12px; }
+    @media(max-width:760px) { .top { padding:35px 20px 82px; } main { margin-top:-52px; } .layout { grid-template-columns:1fr; } .panel { padding:20px; } }
+    @media(max-width:400px) { .result-grid,.compare { gap:9px; } .metric,.option { padding:13px; } .metric .number { font-size:22px; } .option-value { font-size:21px; } }
+  </style>
+</head>
+<body>
+  <header class="top"><div class="top-inner">
+    <div class="eyebrow">EVENT RESOURCE PLANNER</div>
+    <h1>이벤트 재화 계산기</h1>
+    <p class="lead">목표 재화까지 얼마나 돌아야 할까?<br>필요한 에너지부터 파젬, 자연충전 시간까지 한눈에 계산해요.</p>
+  </div></header>
+  <main><div class="layout">
+    <section class="panel" aria-label="계산 입력">
+      <h2>계산 조건</h2><p class="subtle">숫자를 입력하면 결과가 자동으로 바뀝니다.</p>
+      <div class="field"><label for="goal">목표 재화 <span>최종 보유 목표</span></label><div class="input-wrap"><input id="goal" type="number" min="0" step="1" value="10000" inputmode="numeric"><span class="unit">개</span></div></div>
+      <div class="field"><label for="current">현재 보유 재화</label><div class="input-wrap"><input id="current" type="number" min="0" step="1" value="1500" inputmode="numeric"><span class="unit">개</span></div></div>
+      <div class="two">
+        <div class="field"><label for="perRun">1회 획득 재화</label><div class="input-wrap"><input id="perRun" type="number" min="1" step="1" value="100" inputmode="numeric"><span class="unit">개</span></div></div>
+        <div class="field"><label for="energyPerRun">1회 소모 에너지</label><div class="input-wrap"><input id="energyPerRun" type="number" min="1" step="1" value="20" inputmode="numeric"><span class="unit">개</span></div></div>
+      </div>
+      <hr class="divider">
+      <div class="field"><label>이벤트 남은 기간 <span>지금부터 종료까지</span></label><div class="two">
+        <div class="input-wrap"><input id="days" aria-label="남은 일수" type="number" min="0" step="1" value="7" inputmode="numeric"><span class="unit">일</span></div>
+        <div class="input-wrap"><input id="hours" aria-label="남은 시간" type="number" min="0" max="23" step="1" value="0" inputmode="numeric"><span class="unit">시간</span></div>
+      </div></div>
+      <div class="rule"><strong>고정 게임 규칙</strong><br>⚡ 에너지 1개 충전 = 5분<br>🔋 자연충전 보유 상한 = 120개<br>💎 파젬 200개 = 에너지 120개</div>
+      <div class="error" id="error" role="alert"></div>
+    </section>
+    <section class="panel" aria-label="계산 결과">
+      <div class="headrow"><div><h2>계산 결과</h2><p class="subtle" style="margin:0">목표 달성을 위한 예상 필요량</p></div><span class="status" id="status">계산 완료</span></div>
+      <div class="result-grid">
+        <div class="metric"><div class="name">추가로 필요한 재화</div><div class="number" id="needCurrency">-</div></div>
+        <div class="metric"><div class="name">총 플레이 횟수</div><div class="number" id="runs">-</div></div>
+        <div class="metric accent"><div class="name">필요한 총 에너지</div><div class="number" id="energy">-</div></div>
+        <div class="metric accent"><div class="name">하루에 필요한 플레이 횟수</div><div class="number" id="dailyRuns">-</div></div>
+      </div>
+      <h3 class="section-title">파젬 구매 vs 자연충전</h3>
+      <div class="compare">
+        <div class="option"><div class="option-label">💎 전량 구매 시</div><div class="option-value" id="allGems">-</div><div class="option-desc" id="allGemsDesc">에너지 120개 단위 구매</div></div>
+        <div class="option best"><div class="option-label">🌿 자연충전 활용 시</div><div class="option-value" id="mixedGems">-</div><div class="option-desc" id="mixedGemsDesc">기간 내 자연충전분 차감</div></div>
+      </div>
+      <div class="bar-wrap"><div class="bar-meta"><span>기간 내 자연충전으로 충당 가능 비율</span><strong id="percent">-</strong></div><div class="bar"><div id="barFill"></div></div></div>
+      <div class="result-grid" style="margin-top:14px">
+        <div class="metric"><div class="name">자연충전만으로 필요한 시간</div><div class="number" id="naturalTime">-</div></div>
+        <div class="metric"><div class="name">기간 내 최대 자연충전량</div><div class="number" id="regenLimit">-</div></div>
+      </div>
+      <div class="message" id="message" aria-live="polite"></div>
+      <div class="footnote">※ 자연충전 계산은 <strong>현재 에너지 0개부터 시작</strong>하고, 충전된 에너지를 수시로 사용해 상한 120개에 도달해 멈추는 시간이 없다고 가정합니다. 현재 보유 에너지, 추가 보상, 레벨업 회복, 구매 횟수 제한 등은 반영하지 않았습니다. 하루 평균 횟수는 남은 시간을 24시간 기준으로 환산하여 올림합니다.</div>
+      <div class="actions"><button type="button" id="copy">결과 복사하기</button></div>
+    </section>
+  </div></main>
+  <footer>EVENT RESOURCE PLANNER · 모든 계산은 브라우저에서 처리됩니다.</footer>
+  <script>
+    const $ = id => document.getElementById(id);
+    const fmt = n => Number(n).toLocaleString('ko-KR');
+    const ceil = Math.ceil;
+    const fields = ['goal','current','perRun','energyPerRun','days','hours'];
+    let summary = '';
+    function render() {
+      const vals = fields.map(id => $(id).value.trim() === '' ? NaN : Number($(id).value));
+      const [goal,current,perRun,energyPerRun,days,hours] = vals;
+      const err = $('error');
+      if (vals.some(v=>!Number.isFinite(v) || !Number.isSafeInteger(v)) || vals.some(v=>v<0) || perRun===0 || energyPerRun===0 || hours>23) {
+        err.style.display='block'; err.textContent='올바른 정수를 입력해 주세요. 1회 획득량과 에너지는 1 이상, 남은 시간은 0~23시간이어야 합니다.';
+        $('status').textContent='입력 확인'; return;
+      }
+      const totalHours=days*24+hours;
+      const need=Math.max(0,goal-current);
+      if (totalHours===0 && need>0) { err.style.display='block';err.textContent='목표 달성을 계산하려면 남은 이벤트 기간을 1시간 이상 입력해 주세요.'; $('status').textContent='입력 확인';return; }
+      const runs=ceil(need/perRun);
+      const energy=runs*energyPerRun;
+      if (!Number.isSafeInteger(energy)) { err.style.display='block';err.textContent='계산 범위가 너무 큽니다. 더 작은 숫자를 입력해 주세요.';return; }
+      err.style.display='none';$('status').textContent=need===0?'목표 달성':'계산 완료';
+      const daysRemaining=totalHours/24;
+      const dailyRuns=runs===0?0:ceil(runs/daysRemaining);
+      const allBuys=ceil(energy/120), allGems=allBuys*200;
+      const regen= Math.floor(totalHours*60/5);
+      const natUsed=Math.min(energy,regen);
+      const shortage=Math.max(0,energy-regen);
+      const extraBuys=ceil(shortage/120);
+      const extraGems=extraBuys*200;
+      const naturalMinutes=energy*5;
+      const naturalDays=naturalMinutes/1440;
+      const naturalHours=Math.floor(naturalMinutes/60);
+      const remainderMin=naturalMinutes%60;
+      const timeLabel= energy===0?'0일':(naturalDays>=1?`${(naturalDays).toLocaleString('ko-KR',{maximumFractionDigits:2})} <small>일</small>`:`${naturalHours} <small>시간</small> ${remainderMin} <small>분</small>`);
+      $('needCurrency').innerHTML=`${fmt(need)} <small>개</small>`;
+      $('runs').innerHTML=`${fmt(runs)} <small>회</small>`;
+      $('energy').innerHTML=`${fmt(energy)} <small>개</small>`;
+      $('dailyRuns').innerHTML=`${fmt(dailyRuns)} <small>회/일</small>`;
+      $('allGems').innerHTML=`${fmt(allGems)} <small>개</small>`;
+      $('allGemsDesc').textContent=`${fmt(allBuys)}번 구매 · 총 ${fmt(allBuys*120)} 에너지 확보`;
+      $('mixedGems').innerHTML=`${fmt(extraGems)} <small>개</small>`;
+      $('mixedGemsDesc').textContent=`부족 에너지 ${fmt(shortage)}개 · ${fmt(extraBuys)}번 구매`;
+      $('naturalTime').innerHTML=timeLabel;
+      $('regenLimit').innerHTML=`${fmt(regen)} <small>개</small>`;
+      const percent=energy===0?100:Math.min(100,regen/energy*100);
+      $('percent').textContent=percent.toLocaleString('ko-KR',{maximumFractionDigits:1})+'%';
+      $('barFill').style.width=percent+'%';
+      const msg=$('message');
+      if (need===0) {
+        msg.className='message'; msg.innerHTML='🎉 이미 목표 재화를 달성했어요! 추가 플레이나 파젬 구매가 필요하지 않습니다.';
+      } else if (shortage===0) {
+        msg.className='message'; msg.innerHTML=`✅ <strong>자연충전만으로 이론상 목표 달성이 가능해요.</strong> 남은 기간 동안 ${fmt(runs)}회 플레이하고, 하루 평균 ${fmt(dailyRuns)}회씩 진행하면 됩니다.`;
+      } else {
+        msg.className='message warning'; msg.innerHTML=`⚠️ <strong>자연충전만으로는 부족해요.</strong> 기간 내 자연충전 ${fmt(regen)}개를 모두 활용해도 ${fmt(shortage)}개의 에너지가 더 필요해요. 파젬 ${fmt(extraGems)}개로 충당할 수 있습니다.`;
+      }
+      summary=`[이벤트 재화 계산 결과]\n목표 재화: ${fmt(goal)}개\n현재 재화: ${fmt(current)}개\n추가 필요 재화: ${fmt(need)}개\n필요 플레이: ${fmt(runs)}회\n필요 총 에너지: ${fmt(energy)}개\n남은 이벤트: ${fmt(days)}일 ${fmt(hours)}시간\n하루 평균 필요 플레이: ${fmt(dailyRuns)}회\n전량 구매: 파젬 ${fmt(allGems)}개 (${fmt(allBuys)}번)\n자연충전 활용 후 구매: 파젬 ${fmt(extraGems)}개 (${fmt(extraBuys)}번)\n자연충전만으로 필요한 시간: ${naturalDays.toFixed(2)}일\n기간 내 최대 자연충전: ${fmt(regen)}개\n※ 현재 에너지 0개, 충전 정지 시간 없음 가정`;
+    }
+    fields.forEach(id=>$(id).addEventListener('input',render));
+    $('copy').addEventListener('click',async()=>{
+      try { await navigator.clipboard.writeText(summary); $('copy').textContent='복사했어요!'; setTimeout(()=>$('copy').textContent='결과 복사하기',1800); }
+      catch { const t=document.createElement('textarea');t.value=summary;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();$('copy').textContent='복사했어요!';setTimeout(()=>$('copy').textContent='결과 복사하기',1800); }
+    });
+    render();
+  </script>
+</body>
+</html>
